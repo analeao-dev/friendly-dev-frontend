@@ -3,7 +3,7 @@ import type { Route } from "./+types/index";
 import ProjectCard from "~/components/project-card";
 
 export async function loader({ request }: Route.LoaderArgs): Promise<{ projects: Project[] }> {
-    const res = await fetch("http://localhost:8000/projects");
+    const res = await fetch(`${import.meta.env.VITE_URL_API}/projects`);
     const data = await res.json();
 
     return { projects: data };
