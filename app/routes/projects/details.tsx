@@ -5,7 +5,7 @@ import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 // Utilizei client loader somente para teste, pois o ideal em produção seria usar server loader
 export async function clientLoader({ request, params }: Route.ClientLoaderArgs) {
-	const res = await fetch(`http://localhost:8000/projects/${params.id}`);
+	const res = await fetch(`${import.meta.env.VITE_URL_API}/projects/${params.id}`);
 
 	if (!res.ok) throw new Response('Project not found', { status: 404 });
 
