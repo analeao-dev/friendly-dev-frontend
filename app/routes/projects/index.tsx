@@ -13,10 +13,24 @@ export function meta({}: Route.MetaArgs) {
 }
 
 export async function loader({ request }: Route.LoaderArgs): Promise<{ projects: Project[] }> {
-	const res = await fetch(`${import.meta.env.VITE_URL_API}/projects`);
-	const data = await res.json();
+	const res = await fetch(`${import.meta.env.VITE_URL_API}/projects?populate=*`);
+	const json = await res.json();
 
-	return { projects: data };
+	const projects = json.data.map((item: any) => ({
+		item: item.id,
+		documentId: item.documentId,
+		title: item.title,
+		description: item.description,
+		image: item.image?.url
+			? `${import.meta.env.VITE_STRAPI_API}${item.image.url}`
+			: '/images/no-image.png',
+		url: item.url,
+		date: item.date,
+		category: item.category,
+		featured: item.featured,
+	}));
+
+	return { projects: projects };
 }
 
 const ProjectsPage = ({ loaderData }: Route.ComponentProps) => {
