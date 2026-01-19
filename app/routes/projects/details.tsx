@@ -1,25 +1,43 @@
-import type { Project } from '~/types';
+import type { Project, StrapiProject, StrapiResponse } from '~/types';
 import type { Route } from './+types/details';
 import { Link } from 'react-router';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
 
 // Utilizei client loader somente para teste, pois o ideal em produção seria usar server loader
-export async function clientLoader({ request, params }: Route.ClientLoaderArgs) {
-	const res = await fetch(`${import.meta.env.VITE_URL_API}/projects/${params.id}`);
+export async function loader({ request, params }: Route.LoaderArgs) {
+	const { id } = params;
+	const res = await fetch(
+		`${import.meta.env.VITE_URL_API}/projects?filters[documentId][$eq]=${id}&populate=*`
+	);
 
 	if (!res.ok) throw new Response('Project not found', { status: 404 });
 
-	const project: Project = await res.json();
-	return project;
-}
+	const json: StrapiResponse<StrapiProject> = await res.json();
 
-export async function HydrateFallback() {
-	return <div>Loading...</div>;
+	const item = json.data[0];
+
+	const imageUrl = item.image?.url ? `${item.image.url}` : '/images/no-image.png';
+
+	console.log(imageUrl);
+
+	const project: Project = {
+		id: item.id,
+		documentId: item.documentId,
+		title: item.title,
+		description: item.description,
+		image: imageUrl,
+		url: item.url,
+		date: item.date,
+		category: item.category,
+		featured: item.featured,
+	};
+
+	return { project };
 }
 
 const ProjectDetailsPage = ({ loaderData }: Route.ComponentProps) => {
-	const project = loaderData;
-	console.log(loaderData);
+	const { project } = loaderData;
+
 	return (
 		<>
 			<Link
@@ -36,7 +54,7 @@ const ProjectDetailsPage = ({ loaderData }: Route.ComponentProps) => {
 				<div className='flex flex-col items-start gap-4'>
 					<h1 className='text-blue-400 text-2xl font-bold'>{project.title}</h1>
 					<span>
-						{new Date(project.date).toLocaleDateString()} * {project.category}
+						{new Date(project.date).toLocaleDateString('pt-BR')} * {project.category}
 					</span>
 					<p className='text-gray-200'>{project.description}</p>
 					{/* usa-se a tag <a> no lugar <Link>, pois será redirecionado para uma página externa */}
